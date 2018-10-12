@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: deepak1556 <hop2deep@gmail.com>
+Date: Wed, 31 Oct 2018 14:53:54 +0530
+Subject: content_browser_context.patch
+
+Allows registering preferences from //chrome sources electron depends,
+by sharing the preferences service from browser context. All browser
+context instances in upstream instantiate a preference service, it
+might be worth upstreaming this patch.
+
+diff --git a/content/browser/browser_context.cc b/content/browser/browser_context.cc
+index 199a676de558a0b9142701add943d5612a68a8a0..a50bcd84ed03ac155d7ba179e3540f41afc5c594 100644
+--- a/content/browser/browser_context.cc
++++ b/content/browser/browser_context.cc
+@@ -27,6 +27,7 @@
+ #include "base/threading/thread_task_runner_handle.h"
+ #include "base/unguessable_token.h"
+ #include "build/build_config.h"
++#include "components/prefs/pref_service.h"
+ #include "content/browser/blob_storage/chrome_blob_storage_context.h"
+ #include "content/browser/browsing_data/browsing_data_remover_impl.h"
+ #include "content/browser/content_service_delegate_impl.h"
+@@ -694,4 +695,8 @@ media::VideoDecodePerfHistory* BrowserContext::GetVideoDecodePerfHistory() {
+   return decode_history;
+ }
+ 
++PrefService* BrowserContext::GetPrefs() {
++  return nullptr;
++}
++
+ }  // namespace content
+diff --git a/content/public/browser/browser_context.h b/content/public/browser/browser_context.h
+index 4f794e25ac7982ae5e06a10ec6f207075d4132bc..13b5674231b2059a33272ab17515a01355672c6d 100644
+--- a/content/public/browser/browser_context.h
++++ b/content/public/browser/browser_context.h
+@@ -27,6 +27,7 @@
+ #endif
+ 
+ class GURL;
++class PrefService;
+ 
+ namespace base {
+ class FilePath;
+@@ -329,6 +330,9 @@ class CONTENT_EXPORT BrowserContext : public base::SupportsUserData {
+   // directly, so privacy is not compromised.
+   virtual media::VideoDecodePerfHistory* GetVideoDecodePerfHistory();
+ 
++  // Returns the pref service registered for this context.
++  virtual PrefService* GetPrefs();
++
+  private:
+   const std::string unique_id_;
+   bool was_notify_will_be_destroyed_called_ = false;
